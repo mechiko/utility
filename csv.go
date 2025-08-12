@@ -3,6 +3,7 @@ package utility
 import (
 	"bufio"
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -16,11 +17,8 @@ func ReadCsvFile(filePath string, separator rune) (mp [][]string, err error) {
 	}
 	defer func() {
 		if errFile := f.Close(); errFile != nil {
-			var errReturn error
-			if err != nil {
-				errReturn = fmt.Errorf("%w", err)
-			}
-			err = fmt.Errorf("%w %w", errReturn, err)
+			// Go 1.20+: joins parse error (if any) with close error
+			err = errors.Join(err, fmt.Errorf("close %s: %w", filePath, errFile))
 		}
 	}()
 
@@ -43,11 +41,8 @@ func ReadTextStringArray(filePath string) (mp []string, err error) {
 	}
 	defer func() {
 		if errFile := f.Close(); errFile != nil {
-			var errReturn error
-			if err != nil {
-				errReturn = fmt.Errorf("%w", err)
-			}
-			err = fmt.Errorf("%w %w", errReturn, err)
+			// Go 1.20+: joins parse error (if any) with close error
+			err = errors.Join(err, fmt.Errorf("close %s: %w", filePath, errFile))
 		}
 	}()
 
