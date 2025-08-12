@@ -1,3 +1,6 @@
+//go:build windows
+// +build windows
+
 package utility
 
 import (
@@ -46,7 +49,7 @@ func OpenHttpsLinkInShell(urlRaw string) error {
 		return fmt.Errorf("empty URL provided")
 	}
 	// Handle URLs that already have http:// prefix
-	if strings.HasPrefix(urlRaw, "http://") {
+	if strings.HasPrefix(urlRaw, "https://") {
 		return startShell(urlRaw)
 	}
 	// Parse URL without scheme first

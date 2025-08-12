@@ -2,15 +2,18 @@ package utility
 
 import "net"
 
-// GetFreePort asks the kernel for a free open port that is ready to use.
+// GetFreePort asks the kernel for a currently available TCP port on 127.0.0.1.
+// Note: The port is no longer reserved once returned; callers should bind immediately
+// (or consider a function that returns a bound listener).
 func GetFreePort() (port int, err error) {
-	var a *net.TCPAddr
-	if a, err = net.ResolveTCPAddr("tcp", "localhost:0"); err == nil {
-		var l *net.TCPListener
-		if l, err = net.ListenTCP("tcp", a); err == nil {
-			defer l.Close()
-			return l.Addr().(*net.TCPAddr).Port, nil
-		}
+	addr, err := net.ResolveTCPAddr("tcp", "127.0.0.1:0")
+	if err != nil {
+		return 0, err
 	}
-	return
+	l, err := net.ListenTCP("tcp", addr)
+	if err != nil {
+		return 0, err
+	}
+	defer l.Close()
+	return l.Addr().(*net.TCPAddr).Port, nil
 }

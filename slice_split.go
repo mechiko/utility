@@ -1,12 +1,17 @@
 package utility
 
-func SplitStringSlice2Chunks(slice []string, chunkSize int) [][]string {
-	var chunks [][]string
+func SplitStringSliceToChunks(slice []string, chunkSize int) [][]string {
+	if chunkSize <= 0 {
+		// avoid infinite loop; treat as no-op
+		return nil
+	}
+	// pre-size capacity for fewer allocations
+	capacity := (len(slice) + chunkSize - 1) / chunkSize
+	chunks := make([][]string, 0, capacity)
 	for i := 0; i < len(slice); i += chunkSize {
 		end := i + chunkSize
 
-		// necessary check to avoid slicing beyond
-		// slice capacity
+		// avoid slicing beyond slice length
 		if end > len(slice) {
 			end = len(slice)
 		}

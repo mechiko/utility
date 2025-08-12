@@ -3,34 +3,53 @@ package utility
 import (
 	"bufio"
 	"encoding/csv"
+	"fmt"
 	"io"
-	"log"
 	"os"
 )
 
-func ReadCsvFile(filePath string) [][]string {
+// separator may be '\t'
+func ReadCsvFile(filePath string, separator rune) (mp [][]string, err error) {
 	f, err := os.Open(filePath)
 	if err != nil {
-		log.Fatal("Unable to read input file "+filePath, err)
+		return nil, fmt.Errorf("unable to read input file %s: %w", filePath, err)
 	}
-	defer f.Close()
+	defer func() {
+		if errFile := f.Close(); errFile != nil {
+			var errReturn error
+			if err != nil {
+				errReturn = fmt.Errorf("%w", err)
+			}
+			err = fmt.Errorf("%w %w", errReturn, err)
+		}
+	}()
 
 	csvReader := csv.NewReader(f)
-	// csvReader.Comma = '\t'
+	if separator != rune(0) {
+		csvReader.Comma = separator
+	}
 	records, err := csvReader.ReadAll()
 	if err != nil {
-		log.Fatal("Unable to parse file as CSV for "+filePath, err)
+		return nil, fmt.Errorf("unable to parse file as CSV for %s: %w", filePath, err)
 	}
 
-	return records
+	return records, nil
 }
 
-func ReadTextStringArray(filePath string) []string {
+func ReadTextStringArray(filePath string) (mp []string, err error) {
 	f, err := os.Open(filePath)
 	if err != nil {
-		log.Fatal("Unable to read input file "+filePath, err)
+		return nil, fmt.Errorf("unable to read input file %s: %w", filePath, err)
 	}
-	defer f.Close()
+	defer func() {
+		if errFile := f.Close(); errFile != nil {
+			var errReturn error
+			if err != nil {
+				errReturn = fmt.Errorf("%w", err)
+			}
+			err = fmt.Errorf("%w %w", errReturn, err)
+		}
+	}()
 
 	arr := make([]string, 0)
 	scanner := bufio.NewScanner(f)
@@ -38,19 +57,19 @@ func ReadTextStringArray(filePath string) []string {
 		arr = append(arr, scanner.Text())
 	}
 	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("unable to parse file TXT for %s: %w", filePath, err)
 	}
-	return arr
+	return arr, nil
 }
 
-func ReadTextStringArrayReader(file io.Reader) []string {
+func ReadTextStringArrayReader(file io.Reader) (mp []string, err error) {
 	arr := make([]string, 0)
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		arr = append(arr, scanner.Text())
 	}
 	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("unable to parse file %w", err)
 	}
-	return arr
+	return arr, nil
 }

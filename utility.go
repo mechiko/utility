@@ -27,9 +27,10 @@ func AbsPathCreate(path string) error {
 	if filepath.IsAbs(path) {
 		if !PathOrFileExists(path) {
 			if err := os.Mkdir(path, os.ModePerm); err != nil {
-				os.Exit(1)
+				return fmt.Errorf("failed to create directory %s: %w", path, err)
 			}
 		}
+		return nil
 	}
 	return fmt.Errorf("path not absolute")
 }
@@ -38,7 +39,7 @@ func PathCreate(path string) error {
 	if path != "" {
 		if !PathOrFileExists(path) {
 			if err := os.MkdirAll(path, os.ModePerm); err != nil {
-				os.Exit(1)
+				return fmt.Errorf("failed to create path %s: %w", path, err)
 			}
 		}
 	}
@@ -51,13 +52,11 @@ func HomePathCreate(path string) error {
 		fullPath := filepath.Join(home, path)
 		if !PathOrFileExists(fullPath) {
 			if err := os.MkdirAll(fullPath, os.ModePerm); err != nil {
-				fmt.Printf("ошибка создания %s %s\n", fullPath, err.Error())
-				os.Exit(1)
+				return fmt.Errorf("failed to create path %s: %w", fullPath, err)
 			}
 		}
 	} else {
-		fmt.Println("пустой путь")
-		os.Exit(1)
+		return fmt.Errorf("empty path provided")
 	}
 	return nil
 }
@@ -99,16 +98,6 @@ func RemoveAllNonNumber(s string) string {
 		return r
 	}, s)
 }
-
-// BenchmarkRange-4    20000000    82.0 ns/op
-// func isASCII(s string) bool {
-//     for _, c := range s {
-//         if c > unicode.MaxASCII {
-//             return false
-//         }
-//     }
-//     return true
-// }
 
 // BenchmarkIndex-4    30000000    55.4 ns/op
 func IsASCII(s string) bool {
@@ -165,8 +154,8 @@ func FilteredSearchOfDirectoryTree(re *regexp.Regexp, dir string) ([]string, err
 		files = append(files, path)
 		return nil
 	}
-	filepath.WalkDir(absDir, walk)
-	return files, nil
+	err := filepath.WalkDir(absDir, walk)
+	return files, err
 }
 
 func IndexOf(element string, data []string) int {

@@ -18,15 +18,6 @@ const (
 	All   FileType = "all"
 )
 
-// func isValidFileType(s FileType) bool {
-// 	switch s {
-// 	case Excel, Csv, Txt:
-// 		return true
-// 	default:
-// 		return false
-// 	}
-// }
-
 func DialogOpenFile(fileType []FileType, name string, wd string) (string, error) {
 	if wd == "." {
 		dir, err := os.Getwd()
@@ -44,16 +35,18 @@ func DialogOpenFile(fileType []FileType, name string, wd string) (string, error)
 			dlg.Filter("CSV", "csv")
 		case Txt:
 			dlg.Filter("Txt", "txt")
+		case DB:
+			dlg.Filter("Database", "db")
 		case All:
 			dlg.Filter("All", "*")
 		}
 	}
 	result, err := dlg.Load()
-	if err != nil {
-		return "", fmt.Errorf("%w", err)
-	}
-	if result == "Cancelled" {
+	if errors.Is(err, dialog.ErrCancelled) {
 		return "", fmt.Errorf("диалог выбора отменен")
+	}
+	if err != nil {
+		return "", err
 	}
 	return result, nil
 }
@@ -74,14 +67,19 @@ func DialogSaveFile(fileType FileType, name string, wd string) (string, error) {
 		dlg.Filter("CSV", "csv")
 	case Txt:
 		dlg.Filter("Txt", "txt")
+	case DB:
+		dlg.Filter("Database", "db")
+	case All:
+		dlg.Filter("All", "*")
 	}
 	result, err := dlg.Save()
-	if err != nil {
-		return "", fmt.Errorf("%w", err)
-	}
-	if result == "Cancelled" {
+	if errors.Is(err, dialog.ErrCancelled) {
 		return "", fmt.Errorf("диалог выбора отменен")
 	}
+	if err != nil {
+		return "", err
+	}
+
 	return result, nil
 }
 

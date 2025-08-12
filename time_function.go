@@ -3,7 +3,6 @@ package utility
 import (
 	"fmt"
 	"time"
-	_ "time/tzdata"
 )
 
 // TimeFileName generates a timestamped filename by combining the given name
