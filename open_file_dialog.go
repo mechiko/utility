@@ -13,6 +13,7 @@ type FileType string
 const (
 	Excel FileType = "xlsx"
 	Txt   FileType = "txt"
+	Pdf   FileType = "pdf"
 	Csv   FileType = "csv"
 	DB    FileType = "db"
 	All   FileType = "all"
@@ -35,6 +36,8 @@ func DialogOpenFile(fileType []FileType, name string, wd string) (string, error)
 			dlg.Filter("CSV", "csv")
 		case Txt:
 			dlg.Filter("Txt", "txt")
+		case Pdf:
+			dlg.Filter("Pdf", "pdf")
 		case DB:
 			dlg.Filter("Database", "db")
 		case All:
