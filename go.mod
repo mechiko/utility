@@ -1,6 +1,8 @@
 module github.com/mechiko/utility
 
-go 1.24.6
+go 1.23.0
+
+toolchain go1.24.6
 
 require (
 	github.com/sqweek/dialog v0.0.0-20240226140203-065105509627
