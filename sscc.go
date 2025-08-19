@@ -1,6 +1,9 @@
 package utility
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // calculate a check digit for sscc
 // https://www.gs1.org/services/how-calculate-check-digit-manually
@@ -15,13 +18,15 @@ func Sscc(code string) (out string, err error) {
 			return "", fmt.Errorf("invalid character '%c' at position %d", ch, i)
 		}
 	}
-	// switch {
-	// case len(code) > 17:
-	// 	code = code[:17]
-	// case len(code) < 17:
-	// 	code = fmt.Sprintf("%017s", code)
-	// }
-	code = fmt.Sprintf("%017.17s", code)
+	switch {
+	case len(code) > 17:
+		code = code[:17]
+	case len(code) < 17:
+		// code = fmt.Sprintf("%017s", code)
+		l := len(code)
+		code = strings.Repeat("0", 17-l) + code
+	}
+	// code = fmt.Sprintf("%017.17s", code)
 	sum := 0
 	for i := range code {
 		n := code[i] - '0'
