@@ -22,11 +22,9 @@ func Sscc(code string) (out string, err error) {
 	case len(code) > 17:
 		code = code[:17]
 	case len(code) < 17:
-		// code = fmt.Sprintf("%017s", code)
-		l := len(code)
-		code = strings.Repeat("0", 17-l) + code
+		pad := 17 - len(code)
+		code = strings.Repeat("0", pad) + code
 	}
-	// code = fmt.Sprintf("%017.17s", code)
 	sum := 0
 	for i := range code {
 		n := code[i] - '0'
