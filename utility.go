@@ -12,11 +12,6 @@ import (
 
 // Exists reports whether the named file or directory exists.
 func PathOrFileExists(name string) (ret bool) {
-	defer func() {
-		if r := recover(); r != nil {
-			ret = false
-		}
-	}()
 	if _, err := os.Stat(name); err != nil {
 		return false
 	}
@@ -68,13 +63,6 @@ func UserHomeDir() string {
 		return os.Getenv("HOME")
 	}
 	return home
-}
-
-func PathOrFileExistsMust(name string) (ret bool) {
-	if _, err := os.Stat(name); err != nil {
-		return false
-	}
-	return true
 }
 
 // Remove all non-ASCII characters
@@ -134,12 +122,14 @@ func IsNumber2(s string) bool {
 // `^[a-zA-Z0-9].*\.db$`
 // глубина поиска 0 только в указанном каталоге
 func FilteredSearchOfDirectoryTree(re *regexp.Regexp, dir string) ([]string, error) {
-	absDir := dir
-	if !filepath.IsAbs(absDir) {
-		absDir, _ = filepath.Abs(absDir)
+	if !PathOrFileExists(dir) {
+		return nil, fmt.Errorf("path %s not exists", dir)
+	}
+	if !filepath.IsAbs(dir) {
+		dir, _ = filepath.Abs(dir)
 	}
 	files := []string{}
-	base := filepath.Base(absDir)
+	base := filepath.Base(dir)
 	walk := func(path string, d fs.DirEntry, err error) error {
 		// каталоги не равные base пропускаем
 		if d.IsDir() && (d.Name() != base) {
@@ -154,7 +144,7 @@ func FilteredSearchOfDirectoryTree(re *regexp.Regexp, dir string) ([]string, err
 		files = append(files, path)
 		return nil
 	}
-	err := filepath.WalkDir(absDir, walk)
+	err := filepath.WalkDir(dir, walk)
 	return files, err
 }
 
