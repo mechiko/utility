@@ -2,28 +2,22 @@ package utility
 
 import (
 	"fmt"
+	"regexp"
+	"strconv"
 	"strings"
 )
 
-// calculate a check digit for sscc
-// https://www.gs1.org/services/how-calculate-check-digit-manually
-// Codes are padded with zeros up to 17 positions or truncated to the first 17 positions
+const lenghtSSCC = 17
+
 func Sscc(code string) (out string, err error) {
-	// Validate that code contains only digits
-	if code == "" {
-		return "", fmt.Errorf("code is empty string")
+	if len(code) != lenghtSSCC {
+		return "", fmt.Errorf("wrong lenght code %s", code)
 	}
+	// Validate that code contains only digits
 	for i, ch := range code {
 		if ch < '0' || ch > '9' {
 			return "", fmt.Errorf("invalid character '%c' at position %d", ch, i)
 		}
-	}
-	switch {
-	case len(code) > 17:
-		code = code[:17]
-	case len(code) < 17:
-		pad := 17 - len(code)
-		code = strings.Repeat("0", pad) + code
 	}
 	sum := 0
 	for i := range code {
@@ -35,9 +29,28 @@ func Sscc(code string) (out string, err error) {
 			sum += int(n)
 		}
 	}
-	return fmt.Sprintf("00%s%d", code, roundUp(sum)-sum), nil
+	return fmt.Sprintf("%s%d", code, roundUp(sum)-sum), nil
 }
 
 func roundUp(val int) int {
 	return 10 * ((val + 9) / 10)
+}
+
+func GenerateSSCC(i int, prefix string) (string, error) {
+	// Must be 7–12 digits
+	if matched, _ := regexp.MatchString(`^\d{7,12}$`, prefix); !matched {
+		return "", fmt.Errorf("invalid SSCC prefix %q: must be 7–12 digits", prefix)
+	}
+	prefixLength := len(prefix)
+	number := strconv.Itoa(i)
+	if len(number) > lenghtSSCC-prefixLength {
+		return "", fmt.Errorf("invalid i number: must be %d digits", lenghtSSCC-prefixLength)
+	}
+	padding := strings.Repeat("0", lenghtSSCC-prefixLength-len(number))
+	code := prefix + padding + number
+	sscc, err := Sscc(code)
+	if err != nil {
+		return "", fmt.Errorf("sscc returned error for code %s: %w", code, err)
+	}
+	return "00" + sscc, nil
 }
