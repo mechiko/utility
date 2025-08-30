@@ -7,10 +7,13 @@ import (
 	"strings"
 )
 
-const lenghtSSCC = 17
+const ssccBodyLen = 17
 
+var ssccPrefixRE = regexp.MustCompile(`^\d{7,12}$`)
+
+// Sscc returns the 18-digit SSCC (17-digit body + check digit) without the AI "00".
 func Sscc(code string) (out string, err error) {
-	if len(code) != lenghtSSCC {
+	if len(code) != ssccBodyLen {
 		return "", fmt.Errorf("wrong lenght code %s", code)
 	}
 	// Validate that code contains only digits
@@ -36,17 +39,22 @@ func roundUp(val int) int {
 	return 10 * ((val + 9) / 10)
 }
 
+// GenerateSSCC builds and returns the 20-digit string with AI "00" prefixed
+// from a 7–12 digit prefix and non-negative sequence i.
 func GenerateSSCC(i int, prefix string) (string, error) {
+	if i < 0 {
+		return "", fmt.Errorf("invalid i: must be non-negative")
+	}
 	// Must be 7–12 digits
-	if matched, _ := regexp.MatchString(`^\d{7,12}$`, prefix); !matched {
+	if !ssccPrefixRE.MatchString(prefix) {
 		return "", fmt.Errorf("invalid SSCC prefix %q: must be 7–12 digits", prefix)
 	}
 	prefixLength := len(prefix)
 	number := strconv.Itoa(i)
-	if len(number) > lenghtSSCC-prefixLength {
-		return "", fmt.Errorf("invalid i number: must be %d digits", lenghtSSCC-prefixLength)
+	if len(number) > ssccBodyLen-prefixLength {
+		return "", fmt.Errorf("invalid i number: must be %d digits", ssccBodyLen-prefixLength)
 	}
-	padding := strings.Repeat("0", lenghtSSCC-prefixLength-len(number))
+	padding := strings.Repeat("0", ssccBodyLen-prefixLength-len(number))
 	code := prefix + padding + number
 	sscc, err := Sscc(code)
 	if err != nil {

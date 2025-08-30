@@ -20,19 +20,22 @@ var testsParse = []struct {
 	{"test 4", false, "1234567890", 1234567, "00123456789012345675"},
 	{"test 5", true, "1234567890", 1234567890, "00123456789001234560"},
 	{"test 6", false, "123456789", 12345, "00123456789000123452"},
+	{"negative i", true, "1234567", -1, ""},
 }
 
 func TestGenerateSSCC(t *testing.T) {
 	// The execution loop
+	// Capture tt for safety, use NoError, and put expected before actual in Equal
 	for _, tt := range testsParse {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			sscc, err := GenerateSSCC(tt.i, tt.prefix)
 			if tt.err {
 				assert.NotNil(t, err, "ожидаем ошибку")
 			} else {
 				// ожидаем отсутствие ошибки
-				assert.Nil(t, err)
-				assert.Equal(t, sscc, tt.result, "ожидаемое значение")
+				assert.NoError(t, err)
+				assert.Equal(t, tt.result, sscc, "ожидаемое значение")
 			}
 		})
 	}
