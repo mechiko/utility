@@ -2,28 +2,25 @@ package utility
 
 import (
 	"fmt"
+	"regexp"
+	"strconv"
 	"strings"
 )
 
-// calculate a check digit for sscc
-// https://www.gs1.org/services/how-calculate-check-digit-manually
-// Codes are padded with zeros up to 17 positions or truncated to the first 17 positions
+const ssccBodyLen = 17
+
+var ssccPrefixRE = regexp.MustCompile(`^\d{7,12}$`)
+
+// Sscc returns the 18-digit SSCC (17-digit body + check digit) without the AI "00".
 func Sscc(code string) (out string, err error) {
-	// Validate that code contains only digits
-	if code == "" {
-		return "", fmt.Errorf("code is empty string")
+	if len(code) != ssccBodyLen {
+		return "", fmt.Errorf("wrong lenght code %s", code)
 	}
+	// Validate that code contains only digits
 	for i, ch := range code {
 		if ch < '0' || ch > '9' {
 			return "", fmt.Errorf("invalid character '%c' at position %d", ch, i)
 		}
-	}
-	switch {
-	case len(code) > 17:
-		code = code[:17]
-	case len(code) < 17:
-		pad := 17 - len(code)
-		code = strings.Repeat("0", pad) + code
 	}
 	sum := 0
 	for i := range code {
@@ -35,9 +32,33 @@ func Sscc(code string) (out string, err error) {
 			sum += int(n)
 		}
 	}
-	return fmt.Sprintf("00%s%d", code, roundUp(sum)-sum), nil
+	return fmt.Sprintf("%s%d", code, roundUp(sum)-sum), nil
 }
 
 func roundUp(val int) int {
 	return 10 * ((val + 9) / 10)
+}
+
+// GenerateSSCC builds and returns the 20-digit string with AI "00" prefixed
+// from a 7–12 digit prefix and non-negative sequence i.
+func GenerateSSCC(i int, prefix string) (string, error) {
+	if i < 0 {
+		return "", fmt.Errorf("invalid i: must be non-negative")
+	}
+	// Must be 7–12 digits
+	if !ssccPrefixRE.MatchString(prefix) {
+		return "", fmt.Errorf("invalid SSCC prefix %q: must be 7–12 digits", prefix)
+	}
+	prefixLength := len(prefix)
+	number := strconv.Itoa(i)
+	if len(number) > ssccBodyLen-prefixLength {
+		return "", fmt.Errorf("invalid i number: must be %d digits", ssccBodyLen-prefixLength)
+	}
+	padding := strings.Repeat("0", ssccBodyLen-prefixLength-len(number))
+	code := prefix + padding + number
+	sscc, err := Sscc(code)
+	if err != nil {
+		return "", fmt.Errorf("sscc returned error for code %s: %w", code, err)
+	}
+	return "00" + sscc, nil
 }

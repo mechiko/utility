@@ -6,35 +6,36 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSsccTableDriven(t *testing.T) {
-	// Defining the columns of the table
-	var tests = []struct {
-		name  string
-		input string
-		want  string
-		err   bool
-	}{
-		// the table itself
-		{"test 0", "", "", true},
-		{"test 1", "46164463019900001", "00461644630199000016", false},
-		{"test 2", "46164463019901", "00000461644630199016", false},
-		{"test 3", "46164463A19901", "", true},
-		{"test 4", "55546164463019900001", "00555461644630199004", false},
-	}
+var testsParse = []struct {
+	name   string
+	err    bool
+	prefix string
+	i      int
+	result string
+}{
+	// the table itself
+	{"test 0", true, "123456", 0, ""},
+	{"test 1", false, "1234567", 0, "00123456700000000000"},
+	{"test 3", false, "1234567890", 0, "00123456789000000005"},
+	{"test 4", false, "1234567890", 1234567, "00123456789012345675"},
+	{"test 5", true, "1234567890", 1234567890, "00123456789001234560"},
+	{"test 6", false, "123456789", 12345, "00123456789000123452"},
+	{"negative i", true, "1234567", -1, ""},
+}
 
+func TestGenerateSSCC(t *testing.T) {
 	// The execution loop
-	for _, tt := range tests {
+	// Capture tt for safety, use NoError, and put expected before actual in Equal
+	for _, tt := range testsParse {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			ans, err := Sscc(tt.input)
+			sscc, err := GenerateSSCC(tt.i, tt.prefix)
 			if tt.err {
-				assert.NotNil(t, err)
+				assert.NotNil(t, err, "ожидаем ошибку")
 			} else {
 				// ожидаем отсутствие ошибки
-				assert.Nil(t, err)
-			}
-			// проверяем результат
-			if ans != tt.want {
-				t.Errorf("got %s, want %s", ans, tt.want)
+				assert.NoError(t, err)
+				assert.Equal(t, tt.result, sscc, "ожидаемое значение")
 			}
 		})
 	}
