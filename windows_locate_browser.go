@@ -26,10 +26,12 @@ func LocateChrome() string {
 		os.Getenv("ProgramFiles(x86)") + "/Chromium/Application/chrome.exe",
 	}
 	for _, path := range pathsChrome {
-		if _, err := os.Stat(path); os.IsNotExist(err) {
+		if path == "" {
 			continue
 		}
-		return path
+		if fi, err := os.Stat(path); err == nil && !fi.IsDir() {
+			return path
+		}
 	}
 	return ""
 }
@@ -39,10 +41,12 @@ func LocateYandex() string {
 		os.Getenv("LocalAppData") + "/Yandex/YandexBrowser/Application/browser.exe",
 	}
 	for _, path := range pathsChrome {
-		if _, err := os.Stat(path); os.IsNotExist(err) {
+		if path == "" {
 			continue
 		}
-		return path
+		if fi, err := os.Stat(path); err == nil && !fi.IsDir() {
+			return path
+		}
 	}
 	return ""
 }
@@ -55,10 +59,12 @@ func LocateFox() string {
 		os.Getenv("ProgramFiles(x86)") + "/Mozilla Firefox/firefox.exe",
 	}
 	for _, path := range pathsChrome {
-		if _, err := os.Stat(path); os.IsNotExist(err) {
+		if path == "" {
 			continue
 		}
-		return path
+		if fi, err := os.Stat(path); err == nil && !fi.IsDir() {
+			return path
+		}
 	}
 	return ""
 }
@@ -68,10 +74,12 @@ func LocateEdge() string {
 		os.Getenv("ProgramFiles(x86)") + "/Microsoft/Edge/Application/msedge.exe",
 	}
 	for _, path := range pathsChrome {
-		if _, err := os.Stat(path); os.IsNotExist(err) {
+		if path == "" {
 			continue
 		}
-		return path
+		if fi, err := os.Stat(path); err == nil && !fi.IsDir() {
+			return path
+		}
 	}
 	return ""
 }
