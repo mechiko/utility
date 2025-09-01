@@ -90,7 +90,7 @@ func OpenHttpBrowser(urlRaw string, browser Browser) error {
 		return fmt.Errorf("empty URL provided")
 	}
 	// Parse URL without scheme first
-	parsedURL, err := url.Parse("//" + urlRaw)
+	parsedURL, err := url.Parse(urlRaw)
 	if err != nil {
 		return err
 	}
@@ -103,7 +103,7 @@ func OpenHttpsBrowser(urlRaw string, browser Browser) error {
 		return fmt.Errorf("empty URL provided")
 	}
 	// Parse URL without scheme first
-	parsedURL, err := url.Parse("//" + urlRaw)
+	parsedURL, err := url.Parse(urlRaw)
 	if err != nil {
 		return err
 	}

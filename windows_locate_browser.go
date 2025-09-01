@@ -1,8 +1,13 @@
+//go:build windows
+// +build windows
+
 package utility
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 // ChromeExecutable returns a string which points to the preferred Chrome
@@ -19,8 +24,6 @@ func LocateChrome() string {
 		os.Getenv("LocalAppData") + "/Chromium/Application/chrome.exe",
 		os.Getenv("ProgramFiles") + "/Chromium/Application/chrome.exe",
 		os.Getenv("ProgramFiles(x86)") + "/Chromium/Application/chrome.exe",
-		os.Getenv("ProgramFiles(x86)") + "/Microsoft/Edge/Application/msedge.exe",
-		os.Getenv("ProgramFiles") + "/Microsoft/Edge/Application/msedge.exe",
 	}
 	for _, path := range pathsChrome {
 		if _, err := os.Stat(path); os.IsNotExist(err) {
@@ -79,28 +82,45 @@ func StartBrowser(browser Browser, url string) (err error) {
 		args := []string{}
 		appUrl := "--app=" + url
 		args = append(args, appUrl)
-		cmd := exec.Command(LocateChrome(), args...)
-		err = cmd.Start()
+		bin := ChromeExecutable()
+		if bin == "" {
+			return fmt.Errorf("chrome executable not found")
+		}
+		err = exec.Command(bin, args...).Start()
 	case Firefox:
 		argsFox := []string{}
 		appUrlFox := url
 		argsFox = append(argsFox, appUrlFox)
-		cmd := exec.Command(LocateFox(), argsFox...)
-		err = cmd.Start()
+		bin := LocateFox()
+		if bin == "" {
+			return fmt.Errorf("firefox executable not found")
+		}
+		err = exec.Command(bin, argsFox...).Start()
 	case Edge:
 		args := []string{}
 		appUrl := "--app=" + url
 		args = append(args, appUrl)
-		cmd := exec.Command(LocateEdge(), args...)
-		err = cmd.Start()
+		bin := LocateEdge()
+		if bin == "" {
+			return fmt.Errorf("edge executable not found")
+		}
+		err = exec.Command(bin, args...).Start()
 	case Yandex:
 		args := []string{}
 		appUrl := "--app=" + url
 		args = append(args, appUrl)
-		cmd := exec.Command(LocateYandex(), args...)
-		err = cmd.Start()
+		bin := LocateYandex()
+		if bin == "" {
+			return fmt.Errorf("yandex browser executable not found")
+		}
+		err = exec.Command(bin, args...).Start()
 	default:
-		err = OpenHttpLinkInShell(url)
+		l := strings.ToLower(url)
+		if strings.HasPrefix(l, "https://") {
+			err = OpenHttpsLinkInShell(url)
+		} else {
+			err = OpenHttpLinkInShell(url)
+		}
 	}
 	return err
 }
