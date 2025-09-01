@@ -31,12 +31,8 @@ func OpenHttpLinkInShell(urlRaw string) error {
 	if urlRaw == "" {
 		return fmt.Errorf("empty URL provided")
 	}
-	// Handle URLs that already have http:// prefix
-	if strings.HasPrefix(urlRaw, "http://") {
-		return startShell(urlRaw)
-	}
 	// Parse URL without scheme first
-	parsedURL, err := url.Parse("//" + urlRaw)
+	parsedURL, err := url.Parse(urlRaw)
 	if err != nil {
 		return err
 	}
@@ -48,12 +44,8 @@ func OpenHttpsLinkInShell(urlRaw string) error {
 	if urlRaw == "" {
 		return fmt.Errorf("empty URL provided")
 	}
-	// Handle URLs that already have http:// prefix
-	if strings.HasPrefix(urlRaw, "https://") {
-		return startShell(urlRaw)
-	}
 	// Parse URL without scheme first
-	parsedURL, err := url.Parse("//" + urlRaw)
+	parsedURL, err := url.Parse(urlRaw)
 	if err != nil {
 		return err
 	}
@@ -70,4 +62,51 @@ func startShell(url string) error {
 		return fmt.Errorf("failed to execute shell command for URL '%s': %w", url, err)
 	}
 	return nil
+}
+
+type Browser string
+
+// типы зарезервированных БД
+const (
+	Default Browser = ""
+	Chrome  Browser = "chrome"
+	Edge    Browser = "msedge"
+	Firefox Browser = "firefox"
+	Yandex  Browser = "yandex"
+	Opera   Browser = "opera"
+)
+
+func isValidBrowse(b string) bool {
+	switch Browser(b) {
+	case Default, Chrome, Edge, Firefox:
+		return true
+	default:
+		return false
+	}
+}
+
+func OpenHttpBrowser(urlRaw string, browser Browser) error {
+	if urlRaw == "" {
+		return fmt.Errorf("empty URL provided")
+	}
+	// Parse URL without scheme first
+	parsedURL, err := url.Parse("//" + urlRaw)
+	if err != nil {
+		return err
+	}
+	parsedURL.Scheme = "http"
+	return StartBrowser(browser, parsedURL.String())
+}
+
+func OpenHttpsBrowser(urlRaw string, browser Browser) error {
+	if urlRaw == "" {
+		return fmt.Errorf("empty URL provided")
+	}
+	// Parse URL without scheme first
+	parsedURL, err := url.Parse("//" + urlRaw)
+	if err != nil {
+		return err
+	}
+	parsedURL.Scheme = "https"
+	return StartBrowser(browser, parsedURL.String())
 }
